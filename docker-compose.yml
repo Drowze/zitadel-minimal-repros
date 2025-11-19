@@ -1,0 +1,83 @@
+services:
+  zitadel:
+    networks: [zitadel]
+    image: ghcr.io/zitadel/zitadel:v3.4.2-debug
+    command: |
+      start-from-init \
+        --masterkey "MasterkeyNeedsToHave32Characters" \
+        --config /zitadel-config.yml \
+        --steps /zitadel-init.yml
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 8080:8080
+    volumes:
+      - ${PWD}/init.yml:/zitadel-init.yml:ro
+      - ${PWD}/config.yml:/zitadel-config.yml:ro
+      - ${PWD}/data:/zitadel-data
+    healthcheck:
+      test: ["CMD", "/app/zitadel", "ready", "--config", "/zitadel-config.yml"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      PGUSER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks: [zitadel]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "zitadel", "-U", "postgres"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 20s
+
+  zitadel-hooks:
+    networks: [zitadel]
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM ruby
+        RUN gem install rackup webrick
+        COPY hooks-server.rb config.ru
+    command: ["rackup", "--host", "0.0.0.0"]
+    ports:
+      - "9292"
+
+  zitadel-provision:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM alpine
+        RUN apk add curl jq
+        COPY provision-script.sh provision-script.sh
+    command: ["./provision-script.sh"]
+    depends_on:
+      zitadel:
+        condition: service_healthy
+    networks: [zitadel]
+    environment:
+      ZITADEL_TOKEN_PATH: /zitadel-machine-admin.pat
+      ZITADEL_URL: http://zitadel:8080
+      ZITADEL_HOST: localhost
+    volumes:
+      - ${PWD}/data/machine-admin.pat:/zitadel-machine-admin.pat:ro
+
+  minimal-oidc-server:
+    build:
+      context: minimal-oidc-server
+    ports:
+      - 9998:9998
+    networks: [zitadel]
+    environment:
+      ISSUER: http://minimal-oidc-server:9998
+      CLIENT_ID: web
+      CLIENT_SECRET: secret
+      USERS_JSON: '[{ "Email": "testuser@example.com" },{ "Email": "john@example.com" }]'
+      REDIRECT_URI: http://localhost:8080/ui/login/login/externalidp/callback,http://localhost:5000/app/sign-in/zitadel
+networks:
+  zitadel:

@@ -1,0 +1,29 @@
+FirstInstance:
+  MachineKeyPath: /zitadel-data/machine-admin.private-key.json
+  PatPath: /zitadel-data/machine-admin.pat
+  Org:
+    Human:
+      UserName: admin
+      FirstName: ZITADEL
+      LastName: Admin
+      NickName:
+      DisplayName:
+      Email:
+        Address: admin@zitadel.localhost
+        Verified: true
+      PreferredLanguage: en
+      Gender:
+      Phone:
+        Number:
+        Verified:
+      Password: 'Password1!'
+      PasswordChangeRequired: false
+    Machine:
+      Machine:
+        Username: machine-admin
+        Name: machine-admin
+      MachineKey:
+        ExpirationDate: "2050-01-01T00:00:00Z"
+        Type: 1
+      Pat:
+        ExpirationDate: "2050-01-01T00:00:00Z"
