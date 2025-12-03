@@ -56,3 +56,56 @@ zitadel_call POST /management/v1/policies/login \
       "ownerType":"IDP_OWNER_TYPE_ORG"
     }]
   }'
+
+target_id="$(
+  zitadel_call POST /v2beta/actions/targets -d '{
+    "name":"catch-all",
+    "endpoint":"http://zitadel-hooks:9292/catch-all",
+    "rest_webhook":{"interrupt_on_error":false},
+    "timeout":"10s"
+  }' | jq -r '.id'
+)"
+
+zitadel_call PUT /v2beta/actions/executions -d '{
+  "condition":{
+    "response": { "method": "/zitadel.resources.user.v3alpha.ZITADELUsers/GetIdentityProviderIntent" }
+  },
+  "targets":["'$target_id'"]
+}'
+zitadel_call PUT /v2beta/actions/executions -d '{
+  "condition":{
+    "response": { "method": "/zitadel.resources.user.v3alpha.ZITADELUsers/StartIdentityProviderIntent" }
+  },
+  "targets":["'$target_id'"]
+}'
+zitadel_call PUT /v2beta/actions/executions -d '{
+  "condition":{
+    "response": { "method": "/zitadel.user.v2.UserService/RetrieveIdentityProviderIntent" }
+  },
+  "targets":["'$target_id'"]
+}'
+zitadel_call PUT /v2beta/actions/executions -d '{
+  "condition":{
+    "response": { "method": "/zitadel.user.v2.UserService/StartIdentityProviderIntent" }
+  },
+  "targets":["'$target_id'"]
+}'
+zitadel_call PUT /v2beta/actions/executions -d '{
+  "condition":{
+    "response": { "method": "/zitadel.user.v2beta.UserService/RetrieveIdentityProviderIntent" }
+  },
+  "targets":["'$target_id'"]
+}'
+zitadel_call PUT /v2beta/actions/executions -d '{
+  "condition":{
+    "response": { "method": "/zitadel.user.v2beta.UserService/StartIdentityProviderIntent" }
+  },
+  "targets":["'$target_id'"]
+}'
+
+# We should now have a working zitadel instance. Attempting to sign in with the
+# credentials below should succesfully get the identity `minimal-oidc-server`
+# (a dummy identity provider) and automatically create a user on the `Supercool`
+# organization.
+# user: testuser@example.com
+# pass: verysecure
