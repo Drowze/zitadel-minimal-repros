@@ -35,16 +35,12 @@ idp_id="$(zitadel_call POST /management/v1/idps/generic_oidc \
     "client_id":"web",
     "client_secret":"secret",
     "scopes":["openid","profile","email"],
-    "provider_options":{"is_auto_creation":true,"auto_linking": "AUTO_LINKING_OPTION_EMAIL"}
+    "provider_options":{"is_auto_creation":true}
   }' | jq -r '.id')"
 
 zitadel_call POST /management/v1/policies/login \
   -H "x-zitadel-orgid: $org_id" -d '{
-    "ignore_unknown_usernames":false,
-    "allow_username_password":false,
-    "allow_register":false,
     "allow_external_idp":true,
-    "hide_password_reset":true,
     "allow_domain_discovery":true,
     "password_check_lifetime":"864000s",
     "external_login_check_lifetime":"864000s",

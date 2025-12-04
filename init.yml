@@ -1,6 +1,7 @@
 FirstInstance:
   MachineKeyPath: /zitadel-data/machine-admin.private-key.json
   PatPath: /zitadel-data/machine-admin.pat
+  LoginClientPatPath: /zitadel-data/machine-login-client.pat
   Org:
     Human:
       UserName: admin
@@ -18,5 +19,11 @@ FirstInstance:
       MachineKey:
         ExpirationDate: "2050-01-01T00:00:00Z"
         Type: 1
+      Pat:
+        ExpirationDate: "2050-01-01T00:00:00Z"
+    LoginClient:
+      Machine:
+        Username: machine-login-client
+        Name: machine-login-client
       Pat:
         ExpirationDate: "2050-01-01T00:00:00Z"
