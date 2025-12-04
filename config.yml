@@ -22,4 +22,11 @@ Database:
 DefaultInstance:
   Features:
     LoginV2:
-      Required: false
+      Required: true
+      BaseURI: http://localhost:9090/ui/v2/login
+
+OIDC:
+  DefaultLoginURLV2: http://localhost:9090/ui/v2/login/login?authRequest=
+  DefaultLogoutURLV2: http://localhost:9090/ui/v2/login/logout?post_logout_redirect=
+SAML:
+  DefaultLoginURLV2: http://localhost:9090/ui/v2/login/login?samlRequest=
