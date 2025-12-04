@@ -1,8 +1,11 @@
 #!/bin/sh
 
-set -e
+# finish script with error if:
+# - any command finishes unsuccessfuly
+# - any referenced variable is not defined
+set -eu
 
-ZITADEL_PAT="$(cat "${ZITADEL_TOKEN_PATH:?}" | xargs)"
+ZITADEL_PAT="$(cat "${ZITADEL_TOKEN_PATH}" | xargs)"
 
 zitadel_call() {
   method="$1" ; shift
@@ -10,7 +13,7 @@ zitadel_call() {
 
   echo "$method $path" >&2
 
-  curl --fail-with-body --silent \
+  curl --fail-with-body --silent -w "\n" \
     -X "$method" \
     -H "Host: ${ZITADEL_HOST:-localhost}" \
     -H "Authorization: Bearer ${ZITADEL_PAT}" \
