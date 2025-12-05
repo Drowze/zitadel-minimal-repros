@@ -51,8 +51,9 @@ services:
   zitadel-provision:
     build:
       dockerfile_inline: |
-        FROM alpine
-        RUN apk add curl jq
+        FROM python:alpine
+        RUN apk add jq
+        RUN pip install httpie
     command: ["./provision-script.sh"]
     depends_on:
       zitadel:
