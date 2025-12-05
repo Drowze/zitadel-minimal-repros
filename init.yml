@@ -6,16 +6,9 @@ FirstInstance:
       UserName: admin
       FirstName: ZITADEL
       LastName: Admin
-      NickName:
-      DisplayName:
       Email:
         Address: admin@zitadel.localhost
         Verified: true
-      PreferredLanguage: en
-      Gender:
-      Phone:
-        Number:
-        Verified:
       Password: 'Password1!'
       PasswordChangeRequired: false
     Machine:

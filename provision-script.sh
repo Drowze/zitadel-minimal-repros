@@ -11,7 +11,9 @@ zitadel_call() {
   method="$1" ; shift
   path="$1"   ; shift
 
-  echo "$method $path" >&2
+  # output the curl command for easy sharing/debugging
+  # output is to stderr, so it doesn't interefere the function output
+  echo "curl -X$method \$ZITADEL_URL$path $(echo "${*}" | tr '\n' ' ')" >&2
 
   curl --fail-with-body --silent -w "\n" \
     -X "$method" \
