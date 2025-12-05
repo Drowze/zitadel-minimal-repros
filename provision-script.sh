@@ -4,6 +4,7 @@
 # - any command finishes unsuccessfuly
 # - any referenced variable is not defined
 set -eu
+set -o pipefail
 
 ZITADEL_PAT="$(cat "${ZITADEL_TOKEN_PATH}" | xargs)"
 
