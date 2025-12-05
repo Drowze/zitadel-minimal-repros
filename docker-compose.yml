@@ -1,7 +1,7 @@
 services:
   zitadel:
     networks: [zitadel]
-    image: ghcr.io/zitadel/zitadel:v${ZITADEL_VERSION:-3.4.2}-debug
+    image: ghcr.io/zitadel/zitadel:v4.7.0-debug
     command: |
       start-from-init \
         --masterkey "MasterkeyNeedsToHave32Characters" \
@@ -12,6 +12,7 @@ services:
         condition: service_healthy
     ports:
       - 8080:8080
+      - 9090:3000 # for "login" service (aka login v2)
     volumes:
       - ${PWD}/init.yml:/zitadel-init.yml:ro
       - ${PWD}/config.yml:/zitadel-config.yml:ro
@@ -22,6 +23,20 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  login:
+    image: ghcr.io/zitadel/zitadel-login:v4.7.0
+    environment:
+      NEXT_PUBLIC_BASE_PATH: /ui/v2/login
+      ZITADEL_API_URL: http://localhost:8080
+      ZITADEL_SERVICE_USER_TOKEN_FILE: /zitadel-data/machine-login-client.pat
+    user: "${UID:-1000}"
+    network_mode: service:zitadel
+    volumes:
+      - ${PWD}/data:/zitadel-data:ro
+    depends_on:
+      zitadel:
+        condition: service_healthy
 
   db:
     image: postgres:17-alpine

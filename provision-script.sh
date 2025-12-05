@@ -22,36 +22,27 @@ zitadel_call() {
     "$ZITADEL_URL$path" "${@}"
 }
 
-org_id="$(zitadel_call POST /v2/organizations \
-  -d '{"name": "Supercool"}' | jq -r '.organizationId')"
+# update instance default login policy
+zitadel_call PUT /admin/v1/policies/login -d '{
+  "defaultRedirectUri": "http://localhost:5000/instance-default-login-policy",
+  "allowUsernamePassword": true
+}'
 
-zitadel_call POST /management/v1/orgs/me/domains -H "x-zitadel-orgid: $org_id" -d '{"domain":"example.com"}'
+# create login policy for ZITADEL organization
+org_id="$(zitadel_call POST /v2/organizations/_search -d '{
+  "queries": [
+    { "nameQuery": { "name": "ZITADEL", "method": "TEXT_QUERY_METHOD_EQUALS" }}
+  ]
+}' | jq -r '.result[-1].id')"
+zitadel_call POST /management/v1/policies/login -H "x-zitadel-orgid: $org_id" -d '{
+  "defaultRedirectUri": "http://localhost:5000/zitadel-login-policy",
+  "allowUsernamePassword": true
+}'
 
-idp_id="$(zitadel_call POST /management/v1/idps/generic_oidc \
-  -H "x-zitadel-orgid: $org_id" -d '{
-    "name":"minimal-oidc-server",
-    "issuer":"http://minimal-oidc-server:9998",
-    "client_id":"web",
-    "client_secret":"secret",
-    "scopes":["openid","profile","email"],
-    "provider_options":{"is_auto_creation":true,"auto_linking": "AUTO_LINKING_OPTION_EMAIL"}
-  }' | jq -r '.id')"
-
-zitadel_call POST /management/v1/policies/login \
-  -H "x-zitadel-orgid: $org_id" -d '{
-    "ignore_unknown_usernames":false,
-    "allow_username_password":false,
-    "allow_register":false,
-    "allow_external_idp":true,
-    "hide_password_reset":true,
-    "allow_domain_discovery":true,
-    "password_check_lifetime":"864000s",
-    "external_login_check_lifetime":"864000s",
-    "mfa_init_skip_lifetime":"2592000s",
-    "second_factor_check_lifetime":"64800s",
-    "multi_factor_check_lifetime":"43200s",
-    "idps":[{
-      "idp_id":"'$idp_id'",
-      "ownerType":"IDP_OWNER_TYPE_ORG"
-    }]
-  }'
+# create login policy for another organization (and set as default organization)
+org_id="$(zitadel_call POST /v2/organizations -d '{"name": "Supercool"}' | jq -r '.organizationId')"
+zitadel_call POST /management/v1/policies/login -H "x-zitadel-orgid: $org_id" -d '{
+  "defaultRedirectUri": "http://localhost:5000/default-organization-login-policy",
+  "allowUsernamePassword": true
+}'
+zitadel_call PUT /admin/v1/orgs/default/$org_id
